@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_firebase_firestore_second/_core/my_colors.dart';
 import 'firebase_options.dart';
 import 'firestore/presentation/home_screen.dart';
 
@@ -26,9 +27,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Listin - Lista Colaborativa',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: MyColors.brown,
+        scaffoldBackgroundColor: MyColors.green,
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: MyColors.red,
+        ),
+        listTileTheme: const ListTileThemeData(
+          iconColor: MyColors.blue,
+        ),
+        appBarTheme: const AppBarTheme(
+          toolbarHeight: 72,
+          centerTitle: true,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(32),
+            ),
+          ),
+        ),
       ),
       home: const HomeScreen(),
     );

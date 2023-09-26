@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_firestore_second/firestore/services/listin_service.dart';
 import 'package:flutter_firebase_firestore_second/firestore_produtos/presentation/produto_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../models/listin.dart';
@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Listin> listListins = [];
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  ListinService listinService = ListinService();
 
   @override
   void initState() {
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         leading: const Icon(Icons.list_alt_rounded),
                         title: Text(model.name),
-                        subtitle: Text(model.id),
+                        // subtitle: Text(model.id),
                       ),
                     );
                   },
@@ -158,10 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       // Salvar no Firestore
-                      firestore
-                          .collection("listins")
-                          .doc(listin.id)
-                          .set(listin.toMap());
+                      listinService.adicionarListin(listin: listin);
 
                       // Atualizar a lista
                       refresh();
@@ -181,22 +178,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   refresh() async {
-    List<Listin> temp = [];
-
-    QuerySnapshot<Map<String, dynamic>> snapshot =
-        await firestore.collection("listins").get();
-
-    for (var doc in snapshot.docs) {
-      temp.add(Listin.fromMap(doc.data()));
-    }
-
+    List<Listin> listaListins = await listinService.lerListins();
     setState(() {
-      listListins = temp;
+      listListins = listaListins;
     });
   }
 
-  void remove(Listin model) {
-    firestore.collection('listins').doc(model.id).delete();
+  void remove(Listin model) async {
+    await listinService.removerListin(listinId: model.id);
     refresh();
   }
 }

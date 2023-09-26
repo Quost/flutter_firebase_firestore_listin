@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_firestore_second/firestore_produtos/helpers/enum_order.dart';
+import 'package:flutter_firebase_firestore_second/firestore_produtos/services/produto_service.dart';
 import 'package:uuid/uuid.dart';
 import '../../firestore/models/listin.dart';
 import '../model/produto.dart';
@@ -20,7 +21,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   List<Produto> listaProdutosPlanejados = [];
   List<Produto> listaProdutosPegos = [];
 
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  ProdutoService produtoService = ProdutoService();
 
   OrdemProduto ordem = OrdemProduto.name;
   bool isDecrescente = false;
@@ -91,12 +92,12 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
-                children: const [
+                children: [
                   Text(
-                    "R\$${0}",
-                    style: TextStyle(fontSize: 42),
+                    "R\$${calcularPrecoPegos().toStringAsFixed(2)}",
+                    style: const TextStyle(fontSize: 42),
                   ),
-                  Text(
+                  const Text(
                     "total previsto para essa compra",
                     style: TextStyle(fontStyle: FontStyle.italic),
                   ),
@@ -119,10 +120,12 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
               children: List.generate(listaProdutosPlanejados.length, (index) {
                 Produto produto = listaProdutosPlanejados[index];
                 return ListTileProduto(
+                  listinId: widget.listin.id,
                   produto: produto,
                   isComprado: false,
                   showModal: showFormModal,
-                  iconClick: alternarComprado,
+                  iconClick: produtoService.alternarComprado,
+                  trailClick: removerProduto,
                 );
               }),
             ),
@@ -142,10 +145,12 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
               children: List.generate(listaProdutosPegos.length, (index) {
                 Produto produto = listaProdutosPegos[index];
                 return ListTileProduto(
+                  listinId: widget.listin.id,
                   produto: produto,
                   isComprado: true,
                   showModal: showFormModal,
-                  iconClick: alternarComprado,
+                  iconClick: produtoService.alternarComprado,
+                  trailClick: removerProduto,
                 );
               }),
             ),
@@ -278,15 +283,10 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                       }
 
                       // Salvar no Firestore
-                      firestore
-                          .collection("listins")
-                          .doc(widget.listin.id)
-                          .collection("produtos")
-                          .doc(produto.id)
-                          .set(produto.toMap());
-
-                      // Atualizar a lista
-                      //refresh();
+                      produtoService.adicionarProduto(
+                        listinId: widget.listin.id,
+                        produto: produto,
+                      );
 
                       // Fechar o Modal
                       Navigator.pop(context);
@@ -303,24 +303,17 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   }
 
   refresh({QuerySnapshot<Map<String, dynamic>>? snapshot}) async {
-    List<Produto> temp = [];
+    List<Produto> produtosResgatados = await produtoService.lerProdutos(
+        isDecrescente: isDecrescente,
+        listinId: widget.listin.id,
+        ordem: ordem,
+        snapshot: snapshot);
 
-    snapshot ??= await firestore
-        .collection("listins")
-        .doc(widget.listin.id)
-        .collection("produtos")
-        // .where("isComprado", isEqualTo: isComprado)
-        .orderBy(ordem.name, descending: isDecrescente)
-        .get();
-
-    verificarAlteracao(snapshot);
-
-    for (var doc in snapshot.docs) {
-      Produto produto = Produto.fromMap(doc.data());
-      temp.add(produto);
+    if (snapshot != null) {
+      verificarAlteracao(snapshot);
     }
 
-    filtrarProdutos(temp);
+    filtrarProdutos(produtosResgatados);
   }
 
   filtrarProdutos(List<Produto> listaProdutos) {
@@ -341,29 +334,29 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
     });
   }
 
-  alternarComprado(Produto produto) async {
-    produto.isComprado = !produto.isComprado;
-
-    await firestore
-        .collection("listins")
-        .doc(widget.listin.id)
-        .collection("produtos")
-        .doc(produto.id)
-        .update({"isComprado": produto.isComprado});
+  setupListeners() {
+    listener = produtoService.conectarStream(
+        onChange: refresh,
+        listinId: widget.listin.id,
+        ordem: ordem,
+        isDecrescente: isDecrescente);
   }
 
-  setupListeners() {
-    listener = firestore
-        .collection("listins")
-        .doc(widget.listin.id)
-        .collection("produtos")
-        .orderBy(ordem.name, descending: isDecrescente)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        refresh(snapshot: snapshot);
-      },
+  removerProduto(Produto produto) async {
+    await produtoService.removerProduto(
+      produto: produto,
+      listinId: widget.listin.id,
     );
+  }
+
+  double calcularPrecoPegos() {
+    double total = 0;
+    for (Produto produto in listaProdutosPegos) {
+      if (produto.amount != null && produto.price != null) {
+        total += (produto.amount! * produto.price!);
+      }
+    }
+    return total;
   }
 
   verificarAlteracao(QuerySnapshot<Map<String, dynamic>> snapshot) {
