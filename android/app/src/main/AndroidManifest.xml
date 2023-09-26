@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="br.com.alura.flutter_firebase_firestore_first">
+    package="br.com.alura.flutter_firebase_firestore_second">
    <application
-        android:label="flutter_firebase_firestore_first"
+        android:label="flutter_firebase_firestore_second"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

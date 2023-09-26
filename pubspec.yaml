@@ -1,5 +1,5 @@
-name: flutter_firebase_firestore_first
-description: Projeto para o primeiro curso de Flutter com Cloud Firestore da Alura
+name: flutter_firebase_firestore_second
+description: Projeto do segundo curso de Flutter com Firestore da Alura
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
@@ -25,4 +25,5 @@ dev_dependencies:
 flutter:
 
   uses-material-design: true
+
 
