@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_firestore_second/firestore_produtos/helpers/enum_order.dart';
 import 'package:uuid/uuid.dart';
 import '../../firestore/models/listin.dart';
-import '../helpers/enum_order.dart';
 import '../model/produto.dart';
 import 'widgets/list_tile_produto.dart';
 
@@ -23,10 +25,18 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
   OrdemProduto ordem = OrdemProduto.name;
   bool isDecrescente = false;
 
+  late StreamSubscription listener;
+
   @override
   void initState() {
-    refresh();
+    setupListeners();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    listener.cancel();
+    super.dispose();
   }
 
   @override
@@ -276,7 +286,7 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
                           .set(produto.toMap());
 
                       // Atualizar a lista
-                      refresh();
+                      //refresh();
 
                       // Fechar o Modal
                       Navigator.pop(context);
@@ -292,16 +302,18 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
     );
   }
 
-  refresh() async {
+  refresh({QuerySnapshot<Map<String, dynamic>>? snapshot}) async {
     List<Produto> temp = [];
 
-    QuerySnapshot<Map<String, dynamic>> snapshot = await firestore
+    snapshot ??= await firestore
         .collection("listins")
         .doc(widget.listin.id)
         .collection("produtos")
         // .where("isComprado", isEqualTo: isComprado)
         .orderBy(ordem.name, descending: isDecrescente)
         .get();
+
+    verificarAlteracao(snapshot);
 
     for (var doc in snapshot.docs) {
       Produto produto = Produto.fromMap(doc.data());
@@ -338,7 +350,50 @@ class _ProdutoScreenState extends State<ProdutoScreen> {
         .collection("produtos")
         .doc(produto.id)
         .update({"isComprado": produto.isComprado});
+  }
 
-    refresh();
+  setupListeners() {
+    listener = firestore
+        .collection("listins")
+        .doc(widget.listin.id)
+        .collection("produtos")
+        .orderBy(ordem.name, descending: isDecrescente)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        refresh(snapshot: snapshot);
+      },
+    );
+  }
+
+  verificarAlteracao(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    if (snapshot.docChanges.length == 1) {
+      for (DocumentChange docChange in snapshot.docChanges) {
+        String tipo = "";
+        Color cor = Colors.black;
+        switch (docChange.type) {
+          case DocumentChangeType.added:
+            tipo = "Novo Produto";
+            cor = Colors.green;
+            break;
+          case DocumentChangeType.modified:
+            tipo = "Produto alterado";
+            cor = Colors.orange;
+            break;
+          case DocumentChangeType.removed:
+            tipo = "Produto removido";
+            cor = Colors.red;
+            break;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: cor,
+            content: Text(
+              "$tipo: ${Produto.fromMap(docChange.doc.data() as Map<String, dynamic>).name}",
+            ),
+          ),
+        );
+      }
+    }
   }
 }
