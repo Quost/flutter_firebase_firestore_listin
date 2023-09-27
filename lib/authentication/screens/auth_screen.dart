@@ -93,6 +93,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       },
                     ),
                     Visibility(
+                      visible: isEntrando,
+                      child: TextButton(
+                        onPressed: () {
+                          esqueciMinhaSenhaClicado();
+                        },
+                        child: Text("Esqueci minha senha."),
+                      ),
+                    ),
+                    Visibility(
                         visible: !isEntrando,
                         child: Column(
                           children: [
@@ -177,7 +186,17 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   _entrarUsuario({required String email, required String senha}) {
-    authService.entrarUsuario(email: email, senha: senha);
+    authService.entrarUsuario(email: email, senha: senha).then((String? erro) {
+      if (erro == null) {
+        showSnackBar(
+          context: context,
+          mensagem: "Conta logada com sucesso",
+          isErro: false,
+        );
+      } else {
+        showSnackBar(context: context, mensagem: erro);
+      }
+    });
   }
 
   _criarUsuario({
@@ -196,6 +215,48 @@ class _AuthScreenState extends State<AuthScreen> {
         } else {
           showSnackBar(context: context, mensagem: erro);
         }
+      },
+    );
+  }
+
+  esqueciMinhaSenhaClicado() {
+    String email = _emailController.text;
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController redefincaoSenhaController =
+            TextEditingController(text: email);
+        return AlertDialog(
+          title: const Text("Confirme o e-mail para redefinição de senha"),
+          content: TextFormField(
+            controller: redefincaoSenhaController,
+            decoration: const InputDecoration(label: Text("Confirme o e-mail")),
+          ),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(32))),
+          actions: [
+            TextButton(
+              onPressed: () {
+                authService
+                    .redefincaoSenha(email: redefincaoSenhaController.text)
+                    .then((String? erro) {
+                  if (erro == null) {
+                    showSnackBar(
+                      context: context,
+                      mensagem: "E-mail de redefinição enviado!",
+                      isErro: false,
+                    );
+                  } else {
+                    showSnackBar(context: context, mensagem: erro);
+                  }
+
+                  Navigator.pop(context);
+                });
+              },
+              child: const Text("Redefinir senha"),
+            ),
+          ],
+        );
       },
     );
   }
