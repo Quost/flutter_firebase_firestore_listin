@@ -88,43 +88,40 @@ class _AuthScreenState extends State<AuthScreen> {
                         return null;
                       },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Visibility(
-                          visible: !isEntrando,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                controller: _confirmaController,
-                                obscureText: true,
-                                decoration: const InputDecoration(
-                                  label: Text("Confirme a senha"),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.length < 4) {
-                                    return "Insira uma confirmação de senha válida.";
-                                  }
-                                  if (value != _senhaController.text) {
-                                    return "As senhas devem ser iguais.";
-                                  }
-                                  return null;
-                                },
+                    Visibility(
+                        visible: !isEntrando,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _confirmaController,
+                              obscureText: true,
+                              decoration: const InputDecoration(
+                                label: Text("Confirme a senha"),
                               ),
-                              TextFormField(
-                                controller: _nomeController,
-                                decoration: const InputDecoration(
-                                  label: Text("Nome"),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.length < 3) {
-                                    return "Insira um nome maior.";
-                                  }
-                                  return null;
-                                },
+                              validator: (value) {
+                                if (value == null || value.length < 4) {
+                                  return "Insira uma confirmação de senha válida.";
+                                }
+                                if (value != _senhaController.text) {
+                                  return "As senhas devem ser iguais.";
+                                }
+                                return null;
+                              },
+                            ),
+                            TextFormField(
+                              controller: _nomeController,
+                              decoration: const InputDecoration(
+                                label: Text("Nome"),
                               ),
-                            ],
-                          )),
-                    ),
+                              validator: (value) {
+                                if (value == null || value.length < 3) {
+                                  return "Insira um nome maior.";
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        )),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
