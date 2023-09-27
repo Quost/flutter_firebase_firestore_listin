@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_firebase_firestore_second/firestore/models/listin.dart';
+import 'package:flutter_firebase_authentication/firestore/models/listin.dart';
 
 class ListinService {
   FirebaseFirestore firestore = FirebaseFirestore.instance;

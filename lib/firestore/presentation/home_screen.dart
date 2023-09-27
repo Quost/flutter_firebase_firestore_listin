@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_firestore_second/firestore/services/listin_service.dart';
-import 'package:flutter_firebase_firestore_second/firestore_produtos/presentation/produto_screen.dart';
+import 'package:flutter_firebase_authentication/firestore/services/listin_service.dart';
+import 'package:flutter_firebase_authentication/firestore_produtos/presentation/produto_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../models/listin.dart';
 

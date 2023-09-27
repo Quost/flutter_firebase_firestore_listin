@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_firestore_second/firestore_produtos/helpers/enum_order.dart';
-import 'package:flutter_firebase_firestore_second/firestore_produtos/services/produto_service.dart';
+import 'package:flutter_firebase_authentication/firestore_produtos/helpers/enum_order.dart';
+import 'package:flutter_firebase_authentication/firestore_produtos/services/produto_service.dart';
 import 'package:uuid/uuid.dart';
 import '../../firestore/models/listin.dart';
 import '../model/produto.dart';
